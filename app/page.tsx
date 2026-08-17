@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
-const mechanicKras = [
+type View = "dashboard" | "employee" | "incentive" | "reports" | "workshop" | "breakdown" | "claims" | "customer";
+
+const kras = [
   ["Technical Knowledge", [3, 3, 3, 3]],
   ["Kaam Sekhne ki koshish", [4, 4, 2, 4]],
   ["Bay Cleanliness", [4, 4, 3, 3]],
@@ -10,148 +12,108 @@ const mechanicKras = [
   ["Punctuality - Time par aana", [4, 4, 3, 4]],
   ["Repeat job nahin aana", [3, 3, 3, 4]],
 ] as const;
+const weekly = [3.833333, 3.833333, 2.666667, 3.833333];
+const monthly = weekly.reduce((a, b) => a + b, 0) / weekly.length;
 
-const weeklyScores = [3.833333, 3.833333, 2.666667, 3.833333];
-const monthlyAverage = weeklyScores.reduce((a, b) => a + b, 0) / weeklyScores.length;
-
-const workshopRows = [
+const workshop = [
   ["91", "Lachchiram PG College Salikpur Gzp", "UP61AT2335", "T1", "Paid", "₹410", "₹200", "₹646"],
   ["92", "Samta Pb School", "UP61AT0416", "T1", "Paid", "₹160", "₹1,750", "₹2,225"],
 ];
-
-const breakdownRows = [
-  ["", "UP61CT3221", "M/s. ASHA MAHAVIDYALAYA", "FUEL METER IS NOT SHOWIN", "35", "Open"],
-];
-
-const claimRows = [
+const breakdown = [["—", "UP61CT3221", "M/s. ASHA MAHAVIDYALAYA", "FUEL METER IS NOT SHOWIN", "35", "Open", "—"]];
+const claims = [
   ["WCI25C000102", "356", "27-Mar-2025", "₹2,765", "Warranty", "Accepted", "₹2,765"],
   ["WCI25C000103", "357", "27-Mar-2025", "₹2,588", "Warranty", "Accepted", "₹2,588"],
   ["WCI26C000001", "358", "30-Apr-2025", "₹1,465", "Warranty", "REJECTED", "₹0"],
   ["WCI26C000002", "359", "30-Apr-2025", "₹2,187", "Warranty", "Accepted", "₹2,186.85"],
 ];
 
-const nav = [
-  ["overview", "Overview"],
-  ["employee", "Employee Intelligence"],
-  ["incentive", "Incentive"],
-  ["workshop", "Workshop Report"],
-  ["breakdown", "Breakdown Report"],
-  ["claims", "FML / Claims"],
-  ["customer", "Customer / Vehicle"],
+const nav: [View, string, string][] = [
+  ["dashboard", "Dashboard", "⌂"],
+  ["employee", "Employee Intelligence", "◉"],
+  ["incentive", "Incentive", "₹"],
+  ["reports", "Data & Reports", "▤"],
+  ["workshop", "Workshop Report", "▦"],
+  ["breakdown", "Breakdown Tracking", "◌"],
+  ["claims", "FML / Claims", "✓"],
+  ["customer", "Customer / Vehicle", "♙"],
 ];
 
-function Badge({ children, tone = "source" }: { children: React.ReactNode; tone?: "source" | "derived" | "proposed" }) {
+function Badge({ children, tone = "source" }: { children: React.ReactNode; tone?: "source" | "derived" | "proposed" | "neutral" }) {
   return <span className={`badge ${tone}`}>{children}</span>;
 }
-
-function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div className="stat">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {note && <small>{note}</small>}
-    </div>
-  );
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <section className={`card ${className}`}>{children}</section>;
 }
+function Header({ title, subtitle }: { title: string; subtitle: string }) {
+  return <div className="page-header"><div><div className="eyebrow">DEALER INTELLIGENCE / GHAZIPUR</div><h1>{title}</h1><p>{subtitle}</p></div><div className="header-actions"><button className="filter">June 2026 <span>⌄</span></button><button className="secondary">Export preview</button></div></div>;
+}
+function Score({ value }: { value: number }) { return <span className="score-pill">{value}</span>; }
 
 export default function Home() {
-  const [active, setActive] = useState("overview");
+  const [view, setView] = useState<View>("dashboard");
   const [week, setWeek] = useState(1);
+  const [employeeTab, setEmployeeTab] = useState<"evaluation" | "history" | "performance">("evaluation");
 
-  const renderPage = () => {
-    if (active === "employee") return <EmployeePage week={week} setWeek={setWeek} />;
-    if (active === "incentive") return <IncentivePage />;
-    if (active === "workshop") return <WorkshopPage />;
-    if (active === "breakdown") return <BreakdownPage />;
-    if (active === "claims") return <ClaimsPage />;
-    if (active === "customer") return <CustomerPage />;
-    return <OverviewPage setActive={setActive} />;
-  };
+  const go = (v: View) => setView(v);
+  return <main className="app">
+    <aside className="sidebar">
+      <div className="brand"><div className="brand-logo">D</div><div><strong>Dealer Intelligence</strong><small>Management platform</small></div></div>
+      <div className="dealer-switch"><span className="dealer-avatar">G</span><div><b>Ghazipur Workshop</b><small>Force Motors</small></div><span className="chevron">⌄</span></div>
+      <div className="nav-section">WORKSPACE</div>
+      <nav>{nav.map(([id, label, icon]) => <button key={id} className={view === id ? "nav-link active" : "nav-link"} onClick={() => go(id)}><span className="nav-icon">{icon}</span><span>{label}</span>{id === "reports" && <i>6</i>}</button>)}</nav>
+      <div className="sidebar-footer"><Badge tone="neutral">DEMO</Badge><p>Source-aligned prototype</p><small>Source · Derived · Proposed</small></div>
+    </aside>
 
-  return (
-    <main className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">DI</div>
-          <div><b>Dealer Intelligence</b><span>Ghazipur Workshop</span></div>
-        </div>
-        <div className="source-note"><Badge>DEMO</Badge><span>Source-aligned prototype</span></div>
-        <nav>
-          <p className="nav-label">WORKSPACE</p>
-          {nav.map(([id, label]) => (
-            <button key={id} className={active === id ? "nav-item active" : "nav-item"} onClick={() => setActive(id)}>
-              <span className="nav-dot" />{label}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <span>Data source</span>
-          <b>Supplied Excel workbooks</b>
-          <small>Source / Derived / Proposed are intentionally separated.</small>
-        </div>
-      </aside>
-      <section className="content">
-        <header className="topbar">
-          <div><span className="crumb">DEALER INTELLIGENCE</span><h1>{nav.find(([id]) => id === active)?.[1] ?? "Overview"}</h1></div>
-          <div className="top-actions"><button>June 2026 ▾</button><button className="outline">Export Preview</button></div>
-        </header>
-        {renderPage()}
-      </section>
-    </main>
-  );
-}
-
-function OverviewPage({ setActive }: { setActive: (s: string) => void }) {
-  return <div className="page">
-    <div className="intro"><div><Badge>DEMO OVERVIEW</Badge><h2>From scattered reports to one management view.</h2><p>The prototype preserves the dealership&apos;s existing Excel terminology and separates source data from proposed intelligence.</p></div></div>
-    <div className="stats-grid">
-      <Stat label="Employee KRA" value="6 criteria" note="Mechanic • source" />
-      <Stat label="KRA Scale" value="1–5" note="Very Bad → Excellent" />
-      <Stat label="Workshop Data" value="Job Cards" note="Source report" />
-      <Stat label="Claims" value="10 fields" note="Source report" />
-    </div>
-    <div className="two-col">
-      <section className="panel"><div className="panel-head"><div><h3>Employee Intelligence</h3><p>Existing KRA → weekly score → monthly average</p></div><Badge>SOURCE + DERIVED</Badge></div>
-        <div className="employee-card"><div className="avatar">V</div><div><b>VISHWAJEET</b><span>Mechanic • June 2026</span></div><strong>{monthlyAverage.toFixed(2)} <small>/ 5</small></strong></div>
-        <button className="primary wide" onClick={() => setActive("employee")}>Open Employee Evaluation</button>
-      </section>
-      <section className="panel"><div className="panel-head"><div><h3>Data & Reports</h3><p>One visual layer over existing dealership reports</p></div><Badge>PROPOSED</Badge></div>
-        <div className="report-list"><button onClick={() => setActive("workshop")}>Workshop / Job Card <span>→</span></button><button onClick={() => setActive("breakdown")}>Breakdown Tracking <span>→</span></button><button onClick={() => setActive("claims")}>FML / Claims <span>→</span></button></div>
-      </section>
-    </div>
-  </div>;
-}
-
-function EmployeePage({ week, setWeek }: { week: number; setWeek: (n: number) => void }) {
-  return <div className="page">
-    <div className="page-intro"><div><Badge>EMPLOYEE EVALUATION</Badge><h2>VISHWAJEET</h2><p>Mechanic • June 2026 • KRA Assessment Mechanic</p></div><div className="score-hero"><span>Average for month</span><strong>{monthlyAverage.toFixed(2)}</strong><small>/ 5 · <Badge tone="derived">DERIVED</Badge></small></div></div>
-    <div className="filter-row"><label>Week<select value={week} onChange={e => setWeek(Number(e.target.value))}>{[1,2,3,4].map(w => <option key={w} value={w}>Week {w}</option>)}</select></label><label>Department<select><option>Mechanic</option><option>Service Advisor</option><option>CRE</option></select></label><span className="source-legend"><Badge>SOURCE</Badge> Exact KRA fields from workbook</span></div>
-    <section className="panel">
-      <div className="panel-head"><div><h3>Weekly KRA Assessment</h3><p>Existing six-criterion mechanic assessment • equal-weight average</p></div><Badge>1–5 SCALE</Badge></div>
-      <div className="kpi-table"><div className="table-head"><span>KRA / Criteria</span><span>Score</span><span>Meaning</span></div>
-      {mechanicKras.map(([name, scores]) => <div className="table-row" key={name}><span>{name}</span><strong>{scores[week - 1]}</strong><span className="rating">{["Very Bad","Poor","Pass","Good","Excellent"][scores[week - 1]-1]}</span></div>)}
-      <div className="table-row total"><span>Final Score</span><strong>{weeklyScores[week-1].toFixed(6)}</strong><span><Badge tone="derived">SUM ÷ 6</Badge></span></div></div>
+    <section className="main">
+      <header className="topbar"><div className="breadcrumbs">Dealer Intelligence <span>/</span> {nav.find(n => n[0] === view)?.[1]}</div><div className="top-user"><span className="online" /> Demo workspace <span className="user-avatar">K</span></div></header>
+      <div className="content">
+        {view === "dashboard" && <Dashboard go={go} />}
+        {view === "employee" && <Employee week={week} setWeek={setWeek} tab={employeeTab} setTab={setEmployeeTab} />}
+        {view === "incentive" && <Incentive />}
+        {view === "reports" && <Reports go={go} />}
+        {view === "workshop" && <Workshop />}
+        {view === "breakdown" && <Breakdown />}
+        {view === "claims" && <Claims />}
+        {view === "customer" && <Customer />}
+      </div>
     </section>
-    <section className="panel">
-      <div className="panel-head"><div><h3>Monthly History</h3><p>Weekly final scores from the source assessment</p></div><Badge tone="derived">DERIVED</Badge></div>
-      <div className="week-grid">{weeklyScores.map((score, i) => <button key={i} className={week === i+1 ? "week-card selected" : "week-card"} onClick={() => setWeek(i+1)}><span>Week {i+1}</span><strong>{score.toFixed(2)}</strong><small>{mechanicKras.map(k => k[1][i]).reduce((a,b)=>a+b,0)} / 30 points</small></button>)}</div>
-    </section>
-    <section className="proposed-card"><div><Badge tone="proposed">PROPOSED</Badge><h3>Objective performance layer</h3><p>Future system can combine the existing KRA with measurable workshop KPIs once technician attribution is available. No fabricated values are shown in this demo.</p></div><div className="proposed-metrics"><span>Productivity <b>—</b></span><span>Average TAT <b>—</b></span><span>Repeat / Rework <b>—</b></span><span>Labour Generated <b>—</b></span></div></section>
-  </div>;
+  </main>;
 }
 
-function IncentivePage() {
-  return <div className="page">
-    <div className="page-intro"><div><Badge>INCENTIVE</Badge><h2>Existing incentive policy, presented digitally.</h2><p>Rules below are reproduced from the supplied incentive workbook.</p></div></div>
-    <section className="panel"><div className="panel-head"><div><h3>Mechanic / Electrician</h3><p>Existing incentive basis</p></div><Badge>SOURCE</Badge></div><div className="formula">10% of <b>(Total Labour generated without GST − (Salary + OT))</b></div><div className="multiplier-grid">{[[1,"0.50"],[2,"0.65"],[3,"0.80"],[4,"1.00"],[5,"1.20"]].map(([score,mult]) => <div key={score}><span>Assessment {score}</span><strong>{mult}</strong><small>Multiplier</small></div>)}</div></section>
-    <div className="two-col"><section className="panel"><div className="panel-head"><div><h3>Floor Advisors</h3><p>Monthly labour target</p></div><Badge>SOURCE</Badge></div><table><thead><tr><th>Target</th><th>Monthly Labour</th><th>Quarterly Labour</th><th>Quarterly Incentive</th></tr></thead><tbody>{[["T1","₹225,000","₹675,000","₹3,000"],["T2","₹275,000","₹825,000","₹6,000"],["T3","₹325,000","₹975,000","₹9,000"],["T4","₹375,000","₹1,125,000","₹16,000"]].map(r=><tr key={r[0]}>{r.map((x,i)=><td key={i}>{x}</td>)}</tr>)}</tbody></table></section>
-    <section className="panel"><div className="panel-head"><div><h3>CRE — Srishti</h3><p>Vehicle reporting target</p></div><Badge>SOURCE</Badge></div><table><thead><tr><th>Monthly</th><th>Quarterly</th><th>Quarterly Incentive</th></tr></thead><tbody>{[["440","1320","₹3,000"],["465","1395","₹6,000"],["490","1470","₹9,000"],["515","1545","₹12,000"]].map(r=><tr key={r[0]}>{r.map((x,i)=><td key={i}>{x}</td>)}</tr>)}</tbody></table></section></div>
-    <section className="panel"><div className="panel-head"><div><h3>Calculation Preview</h3><p>Visual only • no payroll calculation in this demo</p></div><Badge tone="proposed">PROPOSED UI</Badge></div><div className="calc-grid"><div><span>Employee</span><strong>VISHWAJEET</strong></div><div><span>Average Points</span><strong>3.83 / 5</strong></div><div><span>Assessment</span><strong>4</strong></div><div><span>Multiplier</span><strong>1.00</strong></div><div><span>Labour Generated</span><strong>—</strong><small>employee attribution required</small></div><div><span>Incentive</span><strong>Pending data</strong></div></div></section>
-  </div>;
+function Dashboard({ go }: { go: (v: View) => void }) {
+  return <><Header title="Good morning" subtitle="A consolidated view of the dealership data currently available in the supplied reports." />
+    <div className="hero-row"><div className="hero-copy"><Badge>DEMO WORKSPACE</Badge><h2>One place to understand what your reports are saying.</h2><p>Existing Excel processes remain the source. This interface turns them into searchable employee, workshop, breakdown and claim views.</p></div><div className="hero-meta"><span>Data sources</span><strong>4 workbooks</strong><small>Workshop · KPI · Breakdown · FML</small></div></div>
+    <div className="section-label">AT A GLANCE <span>Source-aligned indicators</span></div>
+    <div className="stats"><Metric label="Mechanic KRA" value="6" note="criteria per weekly assessment" /><Metric label="Assessment scale" value="1–5" note="Very Bad → Excellent" /><Metric label="Monthly KRA" value={monthly.toFixed(2)} note="VISHWAJEET · June 2026" /><Metric label="Report groups" value="6" note="workshop, breakdown, FML & more" /></div>
+    <div className="dashboard-grid">
+      <Card><CardHead title="Employee intelligence" tag="SOURCE + DERIVED" /><div className="employee-highlight"><div className="person"><span className="avatar large">V</span><div><strong>VISHWAJEET</strong><span>Mechanic · June 2026</span></div></div><div className="big-score"><strong>{monthly.toFixed(2)}</strong><small>/ 5 average for month</small></div></div><div className="mini-weeks">{weekly.map((x,i)=><div key={i}><span>Week {i+1}</span><b>{x.toFixed(2)}</b></div>)}</div><button className="primary" onClick={() => go("employee")}>Open employee evaluation <span>→</span></button></Card>
+      <Card><CardHead title="Data & reports" tag="6 REPORT GROUPS" /><div className="report-links"><ReportLink title="Workshop / Job Card" desc="Job card, customer, vehicle, parts & labour" onClick={() => go("workshop")} /><ReportLink title="Breakdown tracking" desc="Open cases, response, supervisor & parts" onClick={() => go("breakdown")} /><ReportLink title="FML / Claims" desc="Status, passed amount & payment" onClick={() => go("claims")} /><ReportLink title="Customer / Vehicle" desc="Searchable customer and vehicle view" onClick={() => go("customer")} /></div></Card>
+    </div>
+  </>;
+}
+function Metric({ label, value, note }: { label:string; value:string; note:string }) { return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{note}</small></div>; }
+function CardHead({ title, tag }: { title:string; tag:string }) { return <div className="card-head"><div><h3>{title}</h3></div><Badge tone="neutral">{tag}</Badge></div>; }
+function ReportLink({ title, desc, onClick }: { title:string; desc:string; onClick:()=>void }) { return <button className="report-link" onClick={onClick}><span className="report-icon">▤</span><span><b>{title}</b><small>{desc}</small></span><em>→</em></button>; }
+
+function Employee({ week, setWeek, tab, setTab }: { week:number; setWeek:(n:number)=>void; tab:string; setTab:(t:"evaluation"|"history"|"performance")=>void }) {
+  const score = weekly[week-1];
+  return <><Header title="Employee Intelligence" subtitle="Mechanic evaluation and incentive intelligence built around the existing Excel process." />
+    <div className="employee-toolbar"><div className="person"><span className="avatar">V</span><div><strong>VISHWAJEET</strong><span>Mechanic · June 2026</span></div></div><div className="toolbar-selects"><select><option>Mechanic</option><option>Service Advisor</option><option>CRE</option></select><select><option>June 2026</option></select></div></div>
+    <div className="tabs"><button className={tab === "evaluation" ? "active" : ""} onClick={() => setTab("evaluation")}>KRA Assessment</button><button className={tab === "history" ? "active" : ""} onClick={() => setTab("history")}>Monthly History</button><button className={tab === "performance" ? "active" : ""} onClick={() => setTab("performance")}>Performance <Badge tone="proposed">PROPOSED</Badge></button></div>
+    {tab === "evaluation" && <Card><CardHead title="Weekly KRA Assessment" tag="SOURCE" /><div className="subline">Exact Mechanic KRA fields from the supplied workbook · equal-weight average</div><div className="week-selector">{[1,2,3,4].map(w=><button className={week === w ? "selected" : ""} key={w} onClick={() => setWeek(w)}>Week {w}</button>)}</div><div className="table-wrap"><table><thead><tr><th>KRA / Criteria</th><th>Score</th><th>Rating</th></tr></thead><tbody>{kras.map(([name, values]) => <tr key={name}><td><b>{name}</b></td><td><Score value={values[week-1]} /></td><td>{["Very Bad","Poor","Pass","Good","Excellent"][values[week-1]-1]}</td></tr>)}<tr className="total"><td>Final Score</td><td><strong>{score.toFixed(6)}</strong></td><td><Badge tone="derived">SUM ÷ 6</Badge></td></tr></tbody></table></div><div className="score-footer"><div><span>Week {week} final score</span><strong>{score.toFixed(2)} <small>/ 5</small></strong></div><div><span>Average for month</span><strong>{monthly.toFixed(2)} <small>/ 5</small></strong></div></div></Card>}
+    {tab === "history" && <Card><CardHead title="June 2026 · Weekly history" tag="DERIVED" /><div className="history-grid">{weekly.map((s,i)=><div className={week === i+1 ? "history-card selected" : "history-card"} key={i} onClick={() => setWeek(i+1)}><span>Week {i+1}</span><strong>{s.toFixed(2)}</strong><small>{kras.reduce((sum,k)=>sum+k[1][i],0)} / 30 points</small><div className="bar"><i style={{width:`${s/5*100}%`}} /></div></div>)}</div><div className="monthly-summary"><span>Average for month</span><strong>{monthly.toFixed(6)}</strong><small>AVERAGE of weekly Final Scores</small></div></Card>}
+    {tab === "performance" && <><div className="notice"><Badge tone="proposed">PROPOSED</Badge><div><strong>Objective performance layer</strong><p>These fields become useful after reliable technician-to-job attribution is available. This demo intentionally does not fabricate values.</p></div></div><div className="stats"><Metric label="Productivity" value="—" note="awaiting attribution" /><Metric label="Average TAT" value="—" note="awaiting attribution" /><Metric label="Repeat / Rework" value="—" note="awaiting attribution" /><Metric label="Labour generated" value="—" note="awaiting attribution" /></div></>}
+  </>;
 }
 
-function WorkshopPage() { return <ReportPage title="Workshop / Job Card Report" subtitle="Gazipur workshop reporting Jul 26.xlsx • Job Card" badge="SOURCE"><table><thead><tr>{["Job Card No","Customer Name","Vehicle No.","Model","Service","Part Value","Labour","Total Invoice"].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{workshopRows.map(r=><tr key={r[0]}>{r.map((x,i)=><td key={i}>{x}</td>)}</tr>)}</tbody></table><div className="field-note"><Badge>FIELDS</Badge> Job Card Opening Date · Job Card Closing Date · Customer Phone Number · Customer Category · Part Code Issued · Part Description · Part Qty · Part MRP · Total Labour · Invoice No · Total Invoice Value</div></ReportPage>; }
-function BreakdownPage() { return <ReportPage title="Breakdown Report" subtitle="Breakdown tracking.xlsx • Daily service Tracker" badge="SOURCE"><table><thead><tr>{["Complain No","Vehicle Reg.","Customer Name","Customer Complaint","Days Open","Closer/OPEN"].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{breakdownRows.map((r,i)=><tr key={i}>{r.map((x,j)=><td key={j}>{x}</td>)}</tr>)}</tbody></table><div className="field-note"><Badge>FIELDS</Badge> ChassisNo · CustomerContactnumber · Customer location · Complain date · Response Date · Supervisor Name/Manager · VEHICLE ATTEND SUPERVISOR · Customer satisfaction form signed Y/N · Remarks · SPO Order No · Order Date · parts receive date</div></ReportPage>; }
-function ClaimsPage() { return <ReportPage title="FML / Claim Report" subtitle="AMIT UPDATED FML Claim Sheet Feb 26.xlsx • Data Report" badge="SOURCE"><table><thead><tr>{["Claim Invoice","Internal No","Invoice Date","Invoice Value","Type","Status","Passed Amount"].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{claimRows.map(r=><tr key={r[0]}>{r.map((x,i)=><td key={i}>{x}</td>)}</tr>)}</tbody></table><div className="field-note"><Badge>FIELDS</Badge> Rejected Amount · Payment Date · Remarks · Claim Month · Claim Year</div></ReportPage>; }
-function CustomerPage() { return <div className="page"><div className="page-intro"><div><Badge>CUSTOMER / VEHICLE</Badge><h2>Lachchiram PG College Salikpur Gzp</h2><p>Source record example from Job Card data</p></div></div><div className="customer-grid"><div className="customer-main"><section className="panel"><div className="customer-title"><div className="avatar">L</div><div><h3>Lachchiram PG College Salikpur Gzp</h3><span>Customer category: School</span></div></div><div className="detail-grid"><div><span>Customer Phone Number</span><strong>9454277263</strong></div><div><span>Vehicle Number</span><strong>UP61AT2335</strong></div><div><span>Vehicle Model</span><strong>T1</strong></div><div><span>Type Of Service</span><strong>Paid</strong></div></div></section><section className="panel"><div className="panel-head"><div><h3>Available history</h3><p>Only imported relationships are shown.</p></div><Badge>SOURCE</Badge></div><div className="empty-history"><b>Job Card history</b><span>Available in imported workshop data.</span><b>Breakdowns / Claims / Feedback</b><span>No linked imported record shown for this customer in this demo.</span></div></section></div></div></div> }
-function ReportPage({ title, subtitle, badge, children }: { title: string; subtitle: string; badge: "SOURCE" | "DERIVED" | "PROPOSED"; children: React.ReactNode }) { return <div className="page"><div className="page-intro"><div><Badge>{badge}</Badge><h2>{title}</h2><p>{subtitle}</p></div></div><section className="panel table-panel"><div className="table-toolbar"><input placeholder="Search records..."/><select><option>All</option></select><button className="outline">Export Preview</button></div>{children}</section></div>; }
+function Incentive() { return <><Header title="Incentive" subtitle="Existing incentive rules presented as a clean, reviewable policy layer." /><Card><CardHead title="Mechanic / Electrician" tag="SOURCE" /><div className="formula-box"><span>Existing incentive basis</span><strong>10% of (Total Labour generated without GST − (Salary + OT))</strong></div><div className="multiplier-grid">{[[1,"0.50"],[2,"0.65"],[3,"0.80"],[4,"1.00"],[5,"1.20"]].map(([a,m])=><div key={a}><span>Assessment {a}</span><strong>{m}</strong><small>Multiplier</small></div>)}</div></Card><div className="two-cards"><Card><CardHead title="Floor Advisors" tag="SOURCE" /><SimpleTable headers={["Target","Monthly Labour","Quarterly Labour","Quarterly Incentive"]} rows={[["T1","₹225,000","₹675,000","₹3,000"],["T2","₹275,000","₹825,000","₹6,000"],["T3","₹325,000","₹975,000","₹9,000"],["T4","₹375,000","₹1,125,000","₹16,000"]]} /></Card><Card><CardHead title="CRE — Srishti" tag="SOURCE" /><SimpleTable headers={["Monthly","Quarterly","Quarterly Incentive"]} rows={[["440","1320","₹3,000"],["465","1395","₹6,000"],["490","1470","₹9,000"],["515","1545","₹12,000"]]} /></Card></div><Card><CardHead title="Calculation preview" tag="PROPOSED UI" /><div className="calc-grid">{[["Employee","VISHWAJEET"],["Average Points","3.83 / 5"],["Assessment","4"],["Multiplier","1.00"],["Labour Generated","—"],["Incentive","Pending data"]].map(([a,b])=><div key={a}><span>{a}</span><strong>{b}</strong></div>)}</div></Card></>; }
+
+function Reports({ go }: { go:(v:View)=>void }) { return <><Header title="Data & Reports" subtitle="The reporting layer that replaces manual hunting across separate Excel sheets." /><div className="report-catalog"><ReportTile title="Employee KPI" count="KRA Assessment Mechanic" desc="Weekly scores, final score and monthly average" onClick={() => go("employee")} /><ReportTile title="Incentive" count="Incentive" desc="Department-specific targets and multipliers" onClick={() => go("incentive")} /><ReportTile title="Workshop / Job Card" count="Job Card" desc="Customer, vehicle, parts, labour and invoice" onClick={() => go("workshop")} /><ReportTile title="Breakdown" count="Daily service Tracker" desc="Complaint, response, days open, supervisor and parts" onClick={() => go("breakdown")} /><ReportTile title="FML / Claims" count="Data Report" desc="Claim status, passed/rejected amount and payment" onClick={() => go("claims")} /><ReportTile title="Customer / Vehicle" count="Job Card" desc="Search customer and vehicle information" onClick={() => go("customer")} /></div><div className="data-flow"><div><span>01</span><b>Excel workbooks</b><small>Existing dealership reports</small></div><i>→</i><div><span>02</span><b>Structured data</b><small>Mapped fields and history</small></div><i>→</i><div><span>03</span><b>Reports</b><small>Searchable management views</small></div><i>→</i><div><span>04</span><b>Management view</b><small>One place to review</small></div></div></>; }
+function ReportTile({ title, count, desc, onClick }: {title:string;count:string;desc:string;onClick:()=>void}) { return <button className="report-tile" onClick={onClick}><div className="tile-icon">▤</div><span className="tile-tag">{count}</span><h3>{title}</h3><p>{desc}</p><em>Open report →</em></button>; }
+
+function Workshop() { return <><Header title="Workshop / Job Card Report" subtitle="Gazipur workshop reporting Jul 26.xlsx · Job Card sheet" /><Card><div className="report-toolbar"><div><Badge>SOURCE</Badge><span>Job Card register</span></div><div><button className="filter">All services ⌄</button><button className="secondary">Export</button></div></div><SimpleTable headers={["Job Card No","Customer Name","Vehicle No.","Model","Service","Part Value","Labour","Total Invoice"]} rows={workshop} /><div className="field-strip"><b>Available source fields</b><span>Job Card Opening Date</span><span>Job Card Closing Date</span><span>Customer Phone Number</span><span>Customer category</span><span>Part Code Issued</span><span>Total Labour</span><span>Invoice No</span></div></Card></>; }
+function Breakdown() { return <><Header title="Breakdown Tracking" subtitle="Breakdown tracking.xlsx · Daily service Tracker" /><div className="stats"><Metric label="Open cases" value="1" note="source sample shown" /><Metric label="Highest days open" value="35" note="source record" /><Metric label="Satisfaction" value="N" note="source field" /><Metric label="SPO Order" value="—" note="source field" /></div><Card><CardHead title="Daily service tracker" tag="SOURCE" /><SimpleTable headers={["Complain No","Vehicle Reg.","Customer Name","Customer Complaint","Days Open","Status","Supervisor"]} rows={breakdown} /><div className="field-strip"><b>Available source fields</b><span>ChassisNo</span><span>CustomerContactnumber</span><span>Customer location</span><span>Complain date</span><span>Response Date</span><span>VEHICLE ATTEND SUPERVISOR</span><span>Remarks</span><span>parts receive date</span></div></Card></>; }
+function Claims() { return <><Header title="FML / Claim Report" subtitle="AMIT UPDATED FML Claim Sheet Feb 26.xlsx · Data Report sheet" /><Card><div className="report-toolbar"><div><Badge>SOURCE</Badge><span>Claim register</span></div><div><button className="filter">All statuses ⌄</button><button className="secondary">Export</button></div></div><SimpleTable headers={["Claim Invoice","Internal No","Invoice Date","Invoice Value","Type","Status","Passed Amount"]} rows={claims} /><div className="field-strip"><b>Available source fields</b><span>Rejected Amount</span><span>Payment Date</span><span>Remarks</span><span>Claim Month</span><span>Claim Year</span></div></Card></>; }
+function Customer() { return <><Header title="Customer / Vehicle" subtitle="Searchable customer and vehicle information from the existing Job Card data." /><Card><div className="search-box"><span>⌕</span><input placeholder="Search customer, vehicle number or phone number" defaultValue="Lachchiram PG College Salikpur Gzp" /><button className="primary">Search</button></div><div className="customer-profile"><div className="avatar large">L</div><div><Badge>SOURCE</Badge><h2>Lachchiram PG College Salikpur Gzp</h2><p>Customer record from Job Card data</p></div></div><div className="customer-grid"><Info label="Customer Phone Number" value="9454277263" /><Info label="Vehicle Number" value="UP61AT2335" /><Info label="Vehicle Model" value="T1" /><Info label="Customer category" value="School" /><Info label="Type Of Service" value="Paid" /><Info label="Job Card No" value="91" /><Info label="Part Value" value="₹410" /><Info label="Total Invoice Value" value="₹646" /></div><div className="empty-history"><strong>History modules</strong><p>Service, breakdown and claim history will appear when matching records exist in the imported data.</p></div></Card></>; }
+function Info({label,value}:{label:string;value:string}) { return <div className="info"><span>{label}</span><strong>{value}</strong></div>; }
+function SimpleTable({ headers, rows }: {headers:string[];rows:string[][]}) { return <div className="table-wrap"><table><thead><tr>{headers.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.map((x,j)=><td key={j}>{j === 5 && (x === "Open" || x === "REJECTED") ? <Badge tone="proposed">{x}</Badge> : x}</td>)}</tr>)}</tbody></table></div>; }
