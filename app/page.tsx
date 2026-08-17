@@ -253,7 +253,7 @@ export default function Home() {
       <div className="shell-content">
         <header className="top-header">
           <div>
-            <p className="breadcrumb">Dealer Intelligence &gt; {breadcrumb}</p>
+            <p className="breadcrumb">Force Goenka Dashboard &gt; {breadcrumb}</p>
             <h1 className="page-title">{currentNav.label}</h1>
           </div>
           <div className="header-tools">
@@ -313,7 +313,7 @@ function Sidebar({
       <div className="sidebar-brand">
         <div className="brand-mark">DI</div>
         <div>
-          <strong>Dealer Intelligence</strong>
+          <strong>Force Goenka Dashboard</strong>
           <span>Force Motors</span>
         </div>
       </div>
@@ -370,7 +370,7 @@ function Dashboard({
   return (
     <>
       <Hero
-        eyebrow="Dealer Intelligence"
+        eyebrow="Force Goenka Dashboard"
         title="One management layer over your existing dealership data."
         description="Bring workshop reports, employee evaluation, incentives, breakdowns, claims and customer records into one searchable management system."
         asideLabel="Data sources"
@@ -1290,4 +1290,3 @@ function Icon({ name }: { name: IconName }) {
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
-

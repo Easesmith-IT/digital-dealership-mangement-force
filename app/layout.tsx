@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dealer Intelligence Demo",
+  title: "Force Goenka Dashboard",
   description: "Enterprise dealership intelligence presentation layer",
 };
 
