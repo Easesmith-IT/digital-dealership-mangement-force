@@ -21,6 +21,37 @@ import {
   customerRows,
 } from "./demo-data";
 
+import {
+  activeProposedWork,
+  breakdownSourceTracker,
+  sampleEmployees,
+  sampleJobCards,
+  sampleManagerAction,
+  vishwajeetJuneKra,
+} from "./data/employee-data";
+import {
+  ComparisonPeriod,
+  EmployeeProfile,
+  EvaluationPeriodMonth,
+  EvaluationPeriodWeek,
+  EvaluationPeriodYear,
+  JobCardRecord,
+  MainTabId,
+  ViewMode,
+} from "./types/employee";
+
+import { EmployeeHeader } from "./components/employee/EmployeeHeader";
+import { EmployeeOverviewTab } from "./components/employee/EmployeeOverviewTab";
+import { EmployeeKraTab } from "./components/employee/EmployeeKraTab";
+import { EmployeeWorkManagementTab } from "./components/employee/EmployeeWorkManagementTab";
+import { EmployeeQualityTab } from "./components/employee/EmployeeQualityTab";
+import { EmployeeProductivityTab } from "./components/employee/EmployeeProductivityTab";
+import { EmployeeIncentiveTab } from "./components/employee/EmployeeIncentiveTab";
+import { EmployeePerformanceHistoryTab } from "./components/employee/EmployeePerformanceHistoryTab";
+import { ManagerActionCard } from "./components/employee/ManagerActionCard";
+import { JobDetailModal } from "./components/employee/JobDetailModal";
+
+
 type BadgeTone = "source" | "derived" | "proposed" | "neutral" | "success";
 
 type NavItem = {
@@ -283,8 +314,6 @@ export default function Home() {
               monthlyAverage={monthlyAverage}
               selectedWeek={selectedWeek}
               setSelectedWeek={setSelectedWeek}
-              employeeTab={employeeTab}
-              setEmployeeTab={setEmployeeTab}
             />
           )}
           {activeView === "incentive" && <IncentivePage />}
@@ -373,9 +402,6 @@ function Dashboard({
         eyebrow="Force Goenka Dashboard"
         title="One management layer over your existing dealership data."
         description="Bring workshop reports, employee evaluation, incentives, breakdowns, claims and customer records into one searchable management system."
-        asideLabel="Data sources"
-        asideValue="4 Workbooks"
-        asideNote="Structured data foundation"
       />
 
       <div className="metric-grid six">
@@ -499,200 +525,175 @@ function DataHub() {
 
 function EmployeeIntelligence({
   monthlyAverage,
-  selectedWeek,
-  setSelectedWeek,
-  employeeTab,
-  setEmployeeTab,
+  selectedWeek: rawSelectedWeek,
+  setSelectedWeek: rawSetSelectedWeek,
 }: {
   monthlyAverage: number;
   selectedWeek: number;
   setSelectedWeek: (week: number) => void;
-  employeeTab: EmployeeTab;
-  setEmployeeTab: (tab: EmployeeTab) => void;
 }) {
-  const selectedWeeklyScore = weeklyScores[selectedWeek - 1];
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeProfile>(sampleEmployees[0]);
+  const [selectedYear, setSelectedYear] = useState<EvaluationPeriodYear>("2026");
+  const [selectedMonth, setSelectedMonth] = useState<EvaluationPeriodMonth>("June");
+  const [selectedWeekStr, setSelectedWeekStr] = useState<EvaluationPeriodWeek>("All Weeks");
+  const [selectedViewMode, setSelectedViewMode] = useState<ViewMode>("Monthly");
+  const [selectedComparison, setSelectedComparison] = useState<ComparisonPeriod>("Previous Period");
+
+  const [activeMainTab, setActiveMainTab] = useState<MainTabId>("overview");
+  const [selectedJobCard, setSelectedJobCard] = useState<JobCardRecord | null>(null);
+
+  // Compute current display score
+  let currentScoreText = `${vishwajeetJuneKra.monthlyAverageScore.toFixed(2)}`;
+  let currentProvenance: "SOURCE" | "DERIVED" | "PROPOSED" = "DERIVED";
+
+  if (selectedWeekStr === "Week 1") {
+    currentScoreText = `${vishwajeetJuneKra.weeklyFinalScores.week1.toFixed(2)}`;
+    currentProvenance = "DERIVED";
+  } else if (selectedWeekStr === "Week 2") {
+    currentScoreText = `${vishwajeetJuneKra.weeklyFinalScores.week2.toFixed(2)}`;
+    currentProvenance = "DERIVED";
+  } else if (selectedWeekStr === "Week 3") {
+    currentScoreText = `${vishwajeetJuneKra.weeklyFinalScores.week3.toFixed(2)}`;
+    currentProvenance = "DERIVED";
+  } else if (selectedWeekStr === "Week 4") {
+    currentScoreText = `${vishwajeetJuneKra.weeklyFinalScores.week4.toFixed(2)}`;
+    currentProvenance = "DERIVED";
+  }
+
+  const handleWeekChange = (weekLabel: string) => {
+    setSelectedWeekStr(weekLabel as EvaluationPeriodWeek);
+    if (weekLabel === "Week 1") rawSetSelectedWeek(1);
+    if (weekLabel === "Week 2") rawSetSelectedWeek(2);
+    if (weekLabel === "Week 3") rawSetSelectedWeek(3);
+    if (weekLabel === "Week 4") rawSetSelectedWeek(4);
+  };
 
   return (
-    <>
-      <SectionHeader
-        eyebrow="Employee Intelligence"
-        title="VISHWAJEET"
-        description="Mechanic · June 2026 · source-backed employee evaluation and derived monthly view"
+    <div className="employee-intelligence-module">
+      {/* Sticky Header with Profile & Global Period Toolbar */}
+      <EmployeeHeader
+        employee={selectedEmployee}
+        currentScoreText={currentScoreText}
+        provenance={currentProvenance}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        selectedWeek={selectedWeekStr}
+        selectedViewMode={selectedViewMode}
+        selectedComparison={selectedComparison}
+        onYearChange={setSelectedYear}
+        onMonthChange={setSelectedMonth}
+        onWeekChange={handleWeekChange}
+        onViewModeChange={setSelectedViewMode}
+        onComparisonChange={setSelectedComparison}
+        employeeList={sampleEmployees}
+        onSelectEmployee={setSelectedEmployee}
       />
 
-      <div className="employee-toolbar">
-        <div className="toolbar-field">
-          <span>Employee</span>
-          <strong>VISHWAJEET</strong>
-        </div>
-        <div className="toolbar-field">
-          <span>Role</span>
-          <strong>Mechanic</strong>
-        </div>
-        <div className="toolbar-field">
-          <span>Month</span>
-          <strong>June 2026</strong>
-        </div>
-        <div className="toolbar-field">
-          <span>Week</span>
-          <strong>Week {selectedWeek}</strong>
-        </div>
+      {/* Primary Module Navigation Tabs */}
+      <div className="employee-subnav-tabs">
+        <button
+          className={`employee-nav-btn ${activeMainTab === "overview" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("overview")}
+        >
+          Overview Cockpit
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "kra" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("kra")}
+        >
+          KRA Evaluation (6 Criteria)
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "work" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("work")}
+        >
+          Work Management & Jobs
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "quality" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("quality")}
+        >
+          Quality & Complaints
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "productivity" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("productivity")}
+        >
+          Productivity & TAT
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "incentive" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("incentive")}
+        >
+          Incentive Engine
+        </button>
+        <button
+          className={`employee-nav-btn ${activeMainTab === "history" ? "active" : ""}`}
+          onClick={() => setActiveMainTab("history")}
+        >
+          Performance History
+        </button>
       </div>
 
-      <div className="tab-row">
-        {(["evaluation", "history", "ranking", "incentive"] as EmployeeTab[]).map((tab) => (
-          <button
-            key={tab}
-            className={`tab-chip ${employeeTab === tab ? "active" : ""}`}
-            type="button"
-            onClick={() => setEmployeeTab(tab)}
-          >
-            {capitalize(tab)}
-          </button>
-        ))}
-      </div>
-
-      {employeeTab === "evaluation" && (
-        <div className="content-grid">
-          <Panel>
-            <PanelHeader
-              title="Employee Evaluation"
-              description="Exact source KRA terminology with 1 to 5 scoring."
-            />
-            <div className="week-switcher">
-              {[1, 2, 3, 4].map((week) => (
-                <button
-                  key={week}
-                  className={`week-chip ${selectedWeek === week ? "active" : ""}`}
-                  type="button"
-                  onClick={() => setSelectedWeek(week)}
-                >
-                  Week {week}
-                </button>
-              ))}
-            </div>
-            <DataTable
-              headers={["KRA", "Score", "Badge"]}
-              rows={evaluationCriteria.map((item) => [
-                item.label,
-                String(item.weeklyScores[selectedWeek - 1]),
-                "SOURCE",
-              ])}
-              compact
-            />
-          </Panel>
-
-          <Panel>
-            <PanelHeader title="Score Summary" description="Weekly score is source-based; monthly average is derived." />
-            <div className="score-stack">
-              <ScoreCard
-                label="Weekly Final Score"
-                value={`${selectedWeeklyScore.toFixed(2)} / 5`}
-                note="SUM of six KRA scores / 6"
-                tone="source"
-              />
-              <ScoreCard
-                label="Average for Month"
-                value={`${monthlyAverage.toFixed(2)} / 5`}
-                note="AVERAGE of weekly final scores"
-                tone="derived"
-              />
-            </div>
-          </Panel>
-        </div>
+      {/* Tab Views */}
+      {activeMainTab === "overview" && (
+        <EmployeeOverviewTab
+          employee={selectedEmployee}
+          assessment={vishwajeetJuneKra}
+          selectedWeek={selectedWeekStr}
+          onSelectWeek={handleWeekChange}
+          onSelectJobCard={setSelectedJobCard}
+        />
       )}
 
-      {employeeTab === "history" && (
-        <div className="content-grid">
-          <Panel>
-            <PanelHeader title="Employee History" description="Weekly matrix for June 2026." />
-            <DataTable
-              headers={["Employee", "Week 1", "Week 2", "Week 3", "Week 4", "Monthly Average"]}
-              rows={[[
-                "VISHWAJEET",
-                "3.83",
-                "3.83",
-                "2.67",
-                "3.83",
-                monthlyAverage.toFixed(2),
-              ]]}
-            />
-          </Panel>
-
-          <Panel>
-            <PanelHeader title="Trend View" description="Compact visualization, not an oversized chart." />
-            <div className="trend-list">
-              {weeklyScores.map((score, index) => (
-                <div key={index} className="trend-row">
-                  <div>
-                    <strong>Week {index + 1}</strong>
-                    <span>{score.toFixed(2)} / 5</span>
-                  </div>
-                  <div className="trend-bar">
-                    <div style={{ width: `${(score / 5) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </div>
+      {activeMainTab === "kra" && (
+        <EmployeeKraTab
+          employee={selectedEmployee}
+          assessment={vishwajeetJuneKra}
+          selectedWeek={selectedWeekStr}
+          onSelectWeek={handleWeekChange}
+        />
       )}
 
-      {employeeTab === "ranking" && (
-        <div className="content-grid">
-          <Panel>
-            <PanelHeader title="Employee Ranking" description="Source score with proposed grade clearly separated." />
-            <DataTable
-              headers={["Rank", "Employee", "Role", "Monthly Average", "Trend", "Grade"]}
-              rows={rankingRows.map((row) => [
-                row.rank,
-                row.employee,
-                row.role,
-                row.average,
-                row.trend,
-                row.grade,
-              ])}
-            />
-          </Panel>
-
-          <Panel>
-            <PanelHeader title="Grade Handling" description="Ranking beyond raw source score is proposed logic." />
-            <div className="annotation-list">
-              <Annotation label="Source Score" value={`${monthlyAverage.toFixed(2)} / 5`} tone="source" />
-              <Annotation label="Proposed Grade" value="A" tone="proposed" />
-              <Annotation label="Method" value="Rank order by monthly average" tone="derived" />
-            </div>
-          </Panel>
-        </div>
+      {activeMainTab === "work" && (
+        <EmployeeWorkManagementTab
+          completedJobs={sampleJobCards}
+          activeProposedWork={activeProposedWork}
+          onSelectJobCard={setSelectedJobCard}
+        />
       )}
 
-      {employeeTab === "incentive" && (
-        <div className="content-grid">
-          <Panel>
-            <PanelHeader title="Incentive Preview" description="This tab mirrors the incentive module for employee-level review." />
-            <div className="formula-panel">
-              <Badge tone="source">SOURCE</Badge>
-              <p>10% of (Total Labour generated without GST - (Salary + OT))</p>
-            </div>
-            <DataTable
-              headers={["Assessment", "Multiplier"]}
-              rows={incentiveMultipliers.map((item) => [item.assessment, item.multiplier])}
-              compact
-            />
-          </Panel>
-
-          <Panel>
-            <PanelHeader title="Calculation Status" description="No incentive amount is shown without linked labour and salary data." />
-            <div className="annotation-list">
-              <Annotation label="Assessment" value="4" tone="source" />
-              <Annotation label="Multiplier" value="1.00" tone="source" />
-              <Annotation label="Labour Generated" value="--" tone="neutral" />
-              <Annotation label="Eligible Incentive" value="Pending required data" tone="proposed" />
-            </div>
-          </Panel>
-        </div>
+      {activeMainTab === "quality" && (
+        <EmployeeQualityTab
+          employee={selectedEmployee}
+          breakdownRecords={breakdownSourceTracker}
+        />
       )}
-    </>
+
+      {activeMainTab === "productivity" && (
+        <EmployeeProductivityTab employee={selectedEmployee} />
+      )}
+
+      {activeMainTab === "incentive" && (
+        <EmployeeIncentiveTab employee={selectedEmployee} />
+      )}
+
+      {activeMainTab === "history" && (
+        <EmployeePerformanceHistoryTab
+          employee={selectedEmployee}
+          assessment={vishwajeetJuneKra}
+        />
+      )}
+
+      {/* Manager Action & Sign-off Panel at bottom */}
+      <ManagerActionCard data={sampleManagerAction} />
+
+      {/* Job Card Detail Drawer Modal */}
+      <JobDetailModal
+        jobCard={selectedJobCard}
+        onClose={() => setSelectedJobCard(null)}
+      />
+    </div>
   );
 }
 
@@ -937,9 +938,9 @@ function Hero({
   eyebrow: string;
   title: string;
   description: string;
-  asideLabel: string;
-  asideValue: string;
-  asideNote: string;
+  asideLabel?: string;
+  asideValue?: string;
+  asideNote?: string;
 }) {
   return (
     <section className="hero-panel">
@@ -948,11 +949,13 @@ function Hero({
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
-      <div className="hero-aside">
-        <span>{asideLabel}</span>
-        <strong>{asideValue}</strong>
-        <small>{asideNote}</small>
-      </div>
+      {asideValue && (
+        <div className="hero-aside">
+          <span>{asideLabel}</span>
+          <strong>{asideValue}</strong>
+          <small>{asideNote}</small>
+        </div>
+      )}
     </section>
   );
 }
