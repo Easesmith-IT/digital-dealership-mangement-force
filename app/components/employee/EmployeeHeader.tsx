@@ -1,14 +1,9 @@
 import React from "react";
-import {
-  ComparisonPeriod,
-  EmployeeProfile,
-  EvaluationPeriodMonth,
-  EvaluationPeriodWeek,
-  EvaluationPeriodYear,
-  ViewMode,
-} from "../../types/employee";
+import { ComparisonPeriod, EmployeeProfile, EvaluationPeriodMonth, EvaluationPeriodWeek, EvaluationPeriodYear, ViewMode } from "../../types/employee";
 import { GradeBadge, ProvenanceBadge } from "../common/Badge";
 import { PeriodSelector } from "../common/PeriodSelector";
+import { finalPerformanceScore, objectiveKpiScore, performanceGrade, vishwajeetJuneProposedPerformance } from "../../data/proposed-performance";
+import { vishwajeetJuneKra } from "../../data/employee-data";
 
 interface EmployeeHeaderProps {
   employee: EmployeeProfile;
@@ -45,6 +40,13 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
   employeeList,
   onSelectEmployee,
 }) => {
+  const proposedFinalScore = finalPerformanceScore(
+    vishwajeetJuneKra.monthlyAverageScore,
+    objectiveKpiScore(vishwajeetJuneProposedPerformance.monthly),
+  );
+  const displayedGrade = employee.id === "emp-vishwajeet" ? performanceGrade(proposedFinalScore) : employee.currentGrade;
+  const displayedGradeProvenance = employee.id === "emp-vishwajeet" ? "PROPOSED" : undefined;
+
   return (
     <div className="employee-cockpit-header">
       <div className="header-top-row">
@@ -54,43 +56,31 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
             <div className="name-role-row">
               <h2 className="employee-name">{employee.name}</h2>
               <span className="role-tag">{employee.role}</span>
-              <GradeBadge grade={employee.currentGrade} />
+              <GradeBadge grade={displayedGrade} />
+              {displayedGradeProvenance && <ProvenanceBadge provenance="PROPOSED" size="sm" />}
             </div>
             <div className="meta-row">
-              <span>📍 {employee.workshop}</span>
+              <span>{employee.workshop}</span>
               <span>&bull;</span>
-              <span>🏢 {employee.department}</span>
+              <span>{employee.department}</span>
               <span>&bull;</span>
-              <span>👤 Manager: {employee.reportingManager}</span>
+              <span>Manager: {employee.reportingManager}</span>
             </div>
           </div>
         </div>
 
         <div className="header-score-card">
           <div className="score-meta">
-            <span className="label">
-              {selectedWeek === "All Weeks" ? `${selectedMonth} Monthly Score` : `${selectedWeek} Score`}
-            </span>
+            <span className="label">{selectedWeek === "All Weeks" ? `${selectedMonth} Monthly Score` : `${selectedWeek} Score`}</span>
             <ProvenanceBadge provenance={provenance} size="sm" />
           </div>
-          <div className="score-value">
-            {currentScoreText}
-            <span className="max-scale">/ 5.0</span>
-          </div>
+          <div className="score-value">{currentScoreText}<span className="max-scale">/ 5.0</span></div>
           <div className="employee-picker">
-            <select
-              className="employee-select"
-              value={employee.id}
-              onChange={(e) => {
-                const found = employeeList.find((x) => x.id === e.target.value);
-                if (found) onSelectEmployee(found);
-              }}
-            >
-              {employeeList.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.role})
-                </option>
-              ))}
+            <select className="employee-select" value={employee.id} onChange={(e) => {
+              const found = employeeList.find((x) => x.id === e.target.value);
+              if (found) onSelectEmployee(found);
+            }}>
+              {employeeList.map((emp) => <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>)}
             </select>
           </div>
         </div>
