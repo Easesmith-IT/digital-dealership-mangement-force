@@ -65,6 +65,34 @@ export interface EmployeeKraAssessment {
   monthlyAverageScore: number;
 }
 
+export interface ProposedPerformancePeriod {
+  jobsTarget: number;
+  jobsCompleted: number;
+  labourTarget: number;
+  labourGenerated: number;
+  tatTargetHours: number;
+  tatActualHours: number;
+  eligibleQualityJobs: number;
+  repeatJobs: number;
+  qcEligibleJobs: number;
+  qcPassedJobs: number;
+  feedbackResponses: number;
+  feedbackScore: number;
+  assignedJobs: number;
+  inProgressJobs: number;
+  waitingJobs: number;
+  activeJobs: number;
+}
+
+export interface ProposedPerformanceData {
+  employeeId: string;
+  year: string;
+  month: string;
+  monthly: ProposedPerformancePeriod;
+  weekly: Record<"week1" | "week2" | "week3" | "week4", ProposedPerformancePeriod>;
+  provenance: "PROPOSED";
+}
+
 export interface JobCardPart {
   partCode: string;
   description: string;
