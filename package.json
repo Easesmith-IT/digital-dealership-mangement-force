@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,9 +18,8 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "eslint": "latest",
+    "eslint": "^9.34.0",
     "eslint-config-next": "latest",
-    "typescript": "latest"
+    "typescript": "^5.9.3"
   }
 }
-

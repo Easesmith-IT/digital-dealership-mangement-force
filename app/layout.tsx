@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Digital Dealership Management Force",
-  description: "Next.js frontend workspace",
+  title: "Dealer Intelligence Demo",
+  description: "Enterprise dealership intelligence presentation layer",
 };
 
 export default function RootLayout({
@@ -17,4 +17,3 @@ export default function RootLayout({
     </html>
   );
 }
-
