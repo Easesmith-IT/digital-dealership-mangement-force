@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   claimRows,
   creDiptiPolicy,
@@ -80,6 +80,8 @@ type IconName =
   | "alert"
   | "search"
   | "bell"
+  | "menu"
+  | "close"
   | "chevron"
   | "file"
   | "arrow";
@@ -255,6 +257,9 @@ const reportTableMap: Record<ReportId, TableData> = {
 };
 
 export default function Home() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [activeView, setActiveView] = useState<ViewId>("employee");
   const [selectedWeek, setSelectedWeek] = useState<number>(3);
   const [employeeTab, setEmployeeTab] = useState<EmployeeTab>("evaluation");
@@ -271,14 +276,92 @@ export default function Home() {
       ? `Employee Intelligence > ${capitalize(employeeTab)}`
       : currentNav.label;
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const syncViewport = () => {
+      const desktop = window.innerWidth >= 1200;
+      setIsDesktop(desktop);
+      if (!desktop) {
+        setSidebarHovered(false);
+      }
+    };
+
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+
+    return () => {
+      window.removeEventListener("resize", syncViewport);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const shouldLockBody = sidebarOpen && window.innerWidth < 1200;
+    document.body.style.overflow = shouldLockBody ? "hidden" : "";
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && window.innerWidth < 1200) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [sidebarOpen]);
+
+  const sidebarExpanded = isDesktop ? sidebarOpen || sidebarHovered : sidebarOpen;
+
+  const handleNavigation = (view: ViewId) => {
+    setActiveView(view);
+
+    if (typeof window !== "undefined" && window.innerWidth < 1200) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
-    <main className="app-shell">
-      <Sidebar activeView={activeView} onNavigate={setActiveView} />
+    <main className={`app-shell ${sidebarExpanded ? "sidebar-expanded" : "sidebar-collapsed"}`}>
+      <button
+        className={`sidebar-backdrop ${sidebarOpen ? "visible" : ""}`}
+        type="button"
+        aria-label="Close navigation"
+        onClick={() => setSidebarOpen(false)}
+      />
+      <Sidebar
+        activeView={activeView}
+        onNavigate={handleNavigation}
+        sidebarOpen={sidebarOpen}
+        sidebarHovered={sidebarHovered}
+        isDesktop={isDesktop}
+        onHoverChange={setSidebarHovered}
+      />
       <div className="shell-content">
         <header className="top-header">
-          <div>
+          <div className="header-heading">
+            <button
+              className="sidebar-toggle"
+              type="button"
+              aria-label={sidebarExpanded ? "Close navigation" : "Open navigation"}
+              aria-controls="primary-navigation"
+              aria-expanded={sidebarExpanded}
+              onClick={() => setSidebarOpen((current) => !current)}
+            >
+              <Icon name={sidebarExpanded ? "close" : "menu"} />
+            </button>
+            <div>
             <p className="breadcrumb">Force Goenka Dashboard &gt; {breadcrumb}</p>
             <h1 className="page-title">{currentNav.label}</h1>
+            </div>
           </div>
           <div className="header-tools">
             <div className="header-chip">Ghazipur Workshop</div>
@@ -324,32 +407,54 @@ export default function Home() {
 function Sidebar({
   activeView,
   onNavigate,
+  sidebarOpen,
+  sidebarHovered,
+  isDesktop,
+  onHoverChange,
 }: {
   activeView: ViewId;
   onNavigate: (view: ViewId) => void;
+  sidebarOpen: boolean;
+  sidebarHovered: boolean;
+  isDesktop: boolean;
+  onHoverChange: (hovered: boolean) => void;
 }) {
   const sections = Array.from(new Set(navigation.map((item) => item.section)));
 
   return (
-    <aside className="sidebar">
+    <aside
+      className={`sidebar ${(sidebarOpen || sidebarHovered) ? "open" : ""}`}
+      onMouseEnter={() => {
+        if (isDesktop) {
+          onHoverChange(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (isDesktop && !sidebarOpen) {
+          onHoverChange(false);
+        }
+      }}
+    >
       <div className="sidebar-brand">
         <div className="brand-mark">DI</div>
-        <div>
+        <div className="sidebar-copy">
           <strong>Force Goenka Dashboard</strong>
           <span>Force Motors</span>
         </div>
       </div>
 
       <div className="workspace-card">
-        <div>
+        <div className="workspace-copy">
           <small>WORKSPACE</small>
           <strong>GHAZIPUR WORKSHOP</strong>
           <span>Source-linked presentation layer</span>
         </div>
-        <Icon name="chevron" />
+        <span className="workspace-chevron" aria-hidden="true">
+          <Icon name="chevron" />
+        </span>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav id="primary-navigation" className="sidebar-nav" aria-label="Primary navigation">
         {sections.map((section) => (
           <div key={section} className="nav-group">
             <span className="nav-group-label">{section}</span>
@@ -360,12 +465,14 @@ function Sidebar({
                   key={item.view}
                   className={`nav-link ${activeView === item.view ? "active" : ""}`}
                   type="button"
+                  title={item.label}
+                  aria-label={item.label}
                   onClick={() => onNavigate(item.view)}
                 >
                   <span className="nav-icon">
                     <Icon name={item.icon} />
                   </span>
-                  <span>{item.label}</span>
+                  <span className="nav-label">{item.label}</span>
                 </button>
               ))}
           </div>
@@ -374,7 +481,7 @@ function Sidebar({
 
       <div className="sidebar-profile">
         <div className="user-avatar small">FM</div>
-        <div>
+        <div className="sidebar-copy">
           <strong>Force Demo Owner</strong>
           <span>Static enterprise presentation</span>
         </div>
@@ -1144,6 +1251,21 @@ function Icon({ name }: { name: IconName }) {
         <svg {...commonProps}>
           <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
           <path d="M10 20a2 2 0 0 0 4 0" />
+        </svg>
+      );
+    case "menu":
+      return (
+        <svg {...commonProps}>
+          <path d="M4 7h16" />
+          <path d="M4 12h16" />
+          <path d="M4 17h16" />
+        </svg>
+      );
+    case "close":
+      return (
+        <svg {...commonProps}>
+          <path d="M6 6 18 18" />
+          <path d="M18 6 6 18" />
         </svg>
       );
     case "chevron":
