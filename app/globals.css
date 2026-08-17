@@ -1,27 +1,4 @@
-:root {
-  color-scheme: light;
-  --bg: #f5f7fa;
-  --surface: #ffffff;
-  --surface-alt: #f8fafc;
-  --line: #e5e7eb;
-  --line-strong: #d6dbe3;
-  --text: #172033;
-  --muted: #667085;
-  --muted-strong: #475467;
-  --navy: #123055;
-  --navy-deep: #0d223d;
-  --blue: #1d4ed8;
-  --blue-soft: #e9f0ff;
-  --green: #157347;
-  --green-soft: #eaf7ef;
-  --amber: #a15c07;
-  --amber-soft: #fff6e6;
-  --violet: #6b46c1;
-  --violet-soft: #f3edff;
-  --shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
-  --radius: 12px;
-  --sidebar-width: 252px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 * {
   box-sizing: border-box;

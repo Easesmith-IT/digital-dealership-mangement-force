@@ -51,7 +51,6 @@ import { EmployeePerformanceHistoryTab } from "./components/employee/EmployeePer
 import { ManagerActionCard } from "./components/employee/ManagerActionCard";
 import { JobDetailModal } from "./components/employee/JobDetailModal";
 
-
 type BadgeTone = "source" | "derived" | "proposed" | "neutral" | "success";
 
 type NavItem = {
@@ -98,8 +97,7 @@ const navigation: NavItem[] = [
 const reportTableMap: Record<ReportId, TableData> = {
   workshop: {
     title: "Workshop Report",
-    description:
-      "Job card source fields from Gazipur workshop reporting Jul 26.xlsx.",
+    description: "Job card source fields from Gazipur workshop reporting Jul 26.xlsx.",
     source: "SOURCE · Gazipur workshop reporting Jul 26.xlsx / Job Card",
     headers: [
       "Job Card No",
@@ -125,8 +123,7 @@ const reportTableMap: Record<ReportId, TableData> = {
   },
   daily: {
     title: "Daily Workshop Report",
-    description:
-      "Derived daily operating summary using the available job card source structure.",
+    description: "Derived daily operating summary using the available job card source structure.",
     source: "DERIVED · From Job Card source data",
     headers: ["Metric", "Value", "Status"],
     rows: [
@@ -146,8 +143,7 @@ const reportTableMap: Record<ReportId, TableData> = {
   },
   breakdown: {
     title: "Breakdown Report",
-    description:
-      "Complaint register from Breakdown tracking.xlsx / Daily service Tracker.",
+    description: "Complaint register from Breakdown tracking.xlsx / Daily service Tracker.",
     source: "SOURCE · Breakdown tracking.xlsx / Daily service Tracker",
     headers: [
       "Complaint No",
@@ -172,8 +168,7 @@ const reportTableMap: Record<ReportId, TableData> = {
   },
   claims: {
     title: "FML / Claims Report",
-    description:
-      "Claim register from AMIT UPDATED FML Claim Sheet Feb 26.xlsx / Data Report.",
+    description: "Claim register from AMIT UPDATED FML Claim Sheet Feb 26.xlsx / Data Report.",
     source: "SOURCE · AMIT UPDATED FML Claim Sheet Feb 26.xlsx / Data Report",
     headers: [
       "Claim No",
@@ -197,8 +192,7 @@ const reportTableMap: Record<ReportId, TableData> = {
   },
   employeeKpi: {
     title: "Employee KPI Report",
-    description:
-      "Mechanic KRA view preserving the exact six source fields and monthly derivation.",
+    description: "Mechanic KRA view preserving the exact six source fields and monthly derivation.",
     source: "SOURCE + DERIVED · June 26.xlsx",
     headers: ["Employee", "Role", "Week 1", "Week 2", "Week 3", "Week 4", "Monthly Average"],
     rows: [["VISHWAJEET", "Mechanic", "3.83", "3.83", "2.67", "3.83", "3.54"]],
@@ -213,8 +207,7 @@ const reportTableMap: Record<ReportId, TableData> = {
   },
   incentive: {
     title: "Incentive Report",
-    description:
-      "Role-specific incentive policy extracted from the source workbook structure.",
+    description: "Role-specific incentive policy extracted from the source workbook structure.",
     source: "SOURCE + PROPOSED UI · June 26.xlsx",
     headers: ["Policy Area", "Rule / Target", "Payout / Multiplier"],
     rows: [
@@ -229,26 +222,25 @@ const reportTableMap: Record<ReportId, TableData> = {
     ],
     detailTitle: "Policy Note",
     detailItems: [
-      ["Universal Formula", "Not used"],
+      ["Mechanic Rule", "Formula uses labour generated without GST minus salary and OT"],
+      ["Assessment Scale", "Multiplier ranges from 0.50 to 1.20"],
       ["Role Logic", "Different by employee group"],
-      ["Live Incentive Amount", "Pending required data"],
-      ["Assessment Multipliers", "1 to 5 available"],
+      ["Current State", "Preview"],
     ],
   },
   customer: {
     title: "Customer Report",
-    description:
-      "Customer and vehicle search view using the imported job card relationship fields.",
+    description: "Customer vehicle profile index from Gazipur workshop reporting Jul 26.xlsx.",
     source: "SOURCE · Gazipur workshop reporting Jul 26.xlsx / Job Card",
     headers: [
-      "Customer",
-      "Phone",
-      "Vehicle",
+      "Customer Name",
+      "Phone Number",
+      "Vehicle Number",
       "Model",
       "Category",
-      "Service",
+      "Last Service",
       "Job Card",
-      "Breakdowns",
+      "Breakdown Status",
     ],
     rows: customerRows,
     detailTitle: "Customer Profile",
@@ -256,17 +248,18 @@ const reportTableMap: Record<ReportId, TableData> = {
       ["Customer", "Lachchiram PG College Salikpur Gzp"],
       ["Phone", "9454277263"],
       ["Vehicle", "UP61AT2335"],
-      ["Service History", "Job Card 91"],
-      ["Claims", "No imported record available"],
+      ["Model", "T1"],
+      ["Last Job Card", "91"],
     ],
   },
 };
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<ViewId>("dashboard");
+  const [activeView, setActiveView] = useState<ViewId>("employee");
+  const [selectedWeek, setSelectedWeek] = useState<number>(3);
   const [employeeTab, setEmployeeTab] = useState<EmployeeTab>("evaluation");
-  const [selectedWeek, setSelectedWeek] = useState(1);
   const [selectedReport, setSelectedReport] = useState<ReportId>("workshop");
+
   const monthlyAverage = useMemo(
     () => weeklyScores.reduce((sum, score) => sum + score, 0) / weeklyScores.length,
     [],
@@ -347,18 +340,19 @@ function Sidebar({
         </div>
       </div>
 
-      <button className="workspace-card" type="button">
+      <div className="workspace-card">
         <div>
-          <small>Workspace</small>
+          <small>WORKSPACE</small>
           <strong>GHAZIPUR WORKSHOP</strong>
+          <span>Source-linked presentation layer</span>
         </div>
         <Icon name="chevron" />
-      </button>
+      </div>
 
       <nav className="sidebar-nav">
         {sections.map((section) => (
           <div key={section} className="nav-group">
-            <p className="nav-group-label">{section}</p>
+            <span className="nav-group-label">{section}</span>
             {navigation
               .filter((item) => item.section === section)
               .map((item) => (
@@ -456,69 +450,37 @@ function DataHub() {
   return (
     <>
       <SectionHeader
-        eyebrow="Data Hub"
-        title="Workbook intake and traceability"
-        description="The interface shows the source workbooks first, then explains how they become structured reporting and management intelligence."
+        eyebrow="Dealer Data Hub"
+        title="Source Workbooks & Import Register"
+        description="Preserves current reporting processes while laying a structured foundation."
       />
 
-      <div className="metric-grid four">
-        <MetricCard label="Source Files" value="4" note="Repository workbooks available" />
-        <MetricCard label="Mapped Fields" value="Preview" note="Field-level mapping view proposed" />
-        <MetricCard label="Records Requiring Review" value="--" note="No validated count in imported data" />
-        <MetricCard label="Duplicate Detection" value="Preview" note="Proposed quality layer" />
-      </div>
-
-      <Panel>
-        <PanelHeader title="Source Workbooks" description="Every card represents a real imported file." />
-        <div className="source-cards">
-          {workbookSources.map((source) => (
-            <article key={source.file} className="source-card">
-              <div className="source-card-top">
-                <div className="source-icon">
-                  <Icon name="file" />
-                </div>
-                <Badge tone="source">SOURCE</Badge>
+      <div className="source-cards">
+        {workbookSources.map((source) => (
+          <article key={source.file} className="source-card">
+            <div className="source-icon">
+              <Icon name="file" />
+            </div>
+            <h3>{source.file}</h3>
+            <div className="source-meta">
+              <div>
+                <dt>Sheets</dt>
+                <dd>{source.sheets}</dd>
               </div>
-              <h3>{source.file}</h3>
-              <dl className="source-meta">
-                <div>
-                  <dt>Status</dt>
-                  <dd>{source.status}</dd>
-                </div>
-                <div>
-                  <dt>Sheets</dt>
-                  <dd>{source.sheets}</dd>
-                </div>
-                <div>
-                  <dt>Records</dt>
-                  <dd>{source.records}</dd>
-                </div>
-                <div>
-                  <dt>Last imported</dt>
-                  <dd>{source.lastImported}</dd>
-                </div>
-                <div>
-                  <dt>Data state</dt>
-                  <dd>{source.dataState}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel>
-        <PanelHeader title="Core Product Story" description="This is the sequence the dealership owner should understand immediately." />
-        <div className="pipeline">
-          <PipelineStep label="SOURCE" title="Workbook files" copy="June 26, Workshop, Breakdown, Claim sheet" />
-          <Icon name="arrow" />
-          <PipelineStep label="STRUCTURED DATA" title="Mapped fields" copy="Employee, customer, vehicle, claim and job card records" />
-          <Icon name="arrow" />
-          <PipelineStep label="REPORTS" title="Management reporting" copy="Dense searchable tables and filtered views" />
-          <Icon name="arrow" />
-          <PipelineStep label="INTELLIGENCE" title="Decision layer" copy="Evaluation, incentives and management attention" />
-        </div>
-      </Panel>
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  <Badge tone="source">{source.status}</Badge>
+                </dd>
+              </div>
+              <div>
+                <dt>Data State</dt>
+                <dd>{source.dataState}</dd>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
     </>
   );
 }
@@ -701,60 +663,56 @@ function IncentivePage() {
   return (
     <>
       <SectionHeader
-        eyebrow="Incentive"
-        title="Policy-led incentive interface"
-        description="Role-specific policy values are preserved from the source workbook; fabricated payouts are avoided."
+        eyebrow="Incentive Intelligence"
+        title="Role-Specific Incentive Policy Review"
+        description="Preserves source policy rules without inventing unlinked payouts."
       />
 
-      <div className="content-grid">
+      <div className="two-column">
         <Panel>
-          <PanelHeader title="Mechanic / Electrician" description="Existing incentive basis and multiplier structure." />
-          <div className="formula-panel">
-            <Badge tone="source">SOURCE</Badge>
-            <p>10% of (Total Labour generated without GST - (Salary + OT))</p>
+          <PanelHeader
+            title="Mechanic / Electrician Incentive Policy"
+            description="Extract from June 26.xlsx Incentive sheet."
+          />
+          <div className="annotation-list">
+            <Annotation
+              label="Formula"
+              value="10% of (Total Labour without GST - (Salary + OT))"
+              tone="source"
+            />
+            <Annotation
+              label="Multiplier Rule"
+              value="Assessment scale 1 to 5 applies multipliers 0.50 to 1.20"
+              tone="source"
+            />
           </div>
           <DataTable
             headers={["Assessment", "Multiplier"]}
             rows={incentiveMultipliers.map((item) => [item.assessment, item.multiplier])}
+            sticky
           />
         </Panel>
 
         <Panel>
-          <PanelHeader title="Calculation Preview" description="Attractive presentation without inventing the final amount." />
-          <div className="annotation-list">
-            <Annotation label="Employee" value="VISHWAJEET" tone="source" />
-            <Annotation label="Monthly Average Points" value="3.54 / 5" tone="derived" />
-            <Annotation label="Assessment" value="4" tone="source" />
-            <Annotation label="Multiplier" value="1.00" tone="source" />
-            <Annotation label="Labour Generated" value="--" tone="neutral" />
-            <Annotation label="Salary + OT" value="--" tone="neutral" />
-            <Annotation label="Incentive" value="Pending required data" tone="proposed" />
+          <PanelHeader title="Other Role Structures" description="Source targets for non-mechanic roles." />
+          <div className="policy-block">
+            <Badge tone="source">SOURCE · Floor Advisor</Badge>
+            <DataTable
+              headers={["Tier", "Min Target", "Max Target", "Payout"]}
+              rows={floorAdvisorPolicy}
+              compact
+            />
+          </div>
+          <div className="policy-block">
+            <Badge tone="source">SOURCE · CRE Srishti</Badge>
+            <DataTable
+              headers={["Target", "Quarterly", "Payout"]}
+              rows={creSrishtiPolicy}
+              compact
+            />
           </div>
         </Panel>
       </div>
-
-      <div className="two-column">
-        <Panel>
-          <PanelHeader title="Floor Advisor" description="Actual target bands from source workbook." />
-          <DataTable
-            headers={["Band", "Monthly Labour", "Quarterly Labour", "Quarterly Incentive"]}
-            rows={floorAdvisorPolicy}
-          />
-        </Panel>
-
-        <Panel>
-          <PanelHeader title="CRE Srishti" description="Source target and incentive structure." />
-          <DataTable
-            headers={["Monthly", "Quarterly", "Quarterly Incentive"]}
-            rows={creSrishtiPolicy}
-          />
-        </Panel>
-      </div>
-
-      <Panel>
-        <PanelHeader title="CRE Dipti" description="Targets are available; incentive values are not confirmed in accessible imported data." />
-        <DataTable headers={["Monthly", "Quarterly", "Quarterly Incentive"]} rows={creDiptiPolicy} />
-      </Panel>
     </>
   );
 }
@@ -764,77 +722,57 @@ function ReportsPage({
   setSelectedReport,
 }: {
   selectedReport: ReportId;
-  setSelectedReport: (report: ReportId) => void;
+  setSelectedReport: (reportId: ReportId) => void;
 }) {
-  const tableData = reportTableMap[selectedReport];
+  const currentTable = reportTableMap[selectedReport];
 
   return (
     <>
       <SectionHeader
         eyebrow="Data & Reports"
-        title="Reporting centre"
-        description="Professional reporting cards, dense tables, and source-aware detail panels."
+        title="Dealership Management Reports"
+        description="Select a report type to review dense, source-backed tables."
       />
 
       <div className="report-card-grid">
-        {reportCards.map((report) => (
-          <article key={report.id} className={`report-card ${selectedReport === report.id ? "selected" : ""}`}>
+        {reportCards.map((card) => (
+          <button
+            key={card.id}
+            className={`report-card ${selectedReport === card.id ? "active" : ""}`}
+            type="button"
+            onClick={() => setSelectedReport(card.id)}
+          >
             <div className="report-card-top">
-              <span className="report-card-icon">
-                <Icon name={report.id === "customer" ? "customer" : report.id === "claims" ? "file" : "reports"} />
-              </span>
-              <Badge tone="neutral">{report.category}</Badge>
+              <span className="report-category">{card.category}</span>
+              <Icon name="file" />
             </div>
-            <h3>{report.title}</h3>
-            <p>{report.description}</p>
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
             <div className="report-card-footer">
-              <span>Records {report.recordCount}</span>
-              <button className="secondary-button" type="button" onClick={() => setSelectedReport(report.id)}>
-                Open Report
-              </button>
+              <span>{card.recordCount}</span>
+              <Icon name="arrow" />
             </div>
-          </article>
+          </button>
         ))}
       </div>
 
-      <div className="content-grid">
-        <Panel>
-          <PanelHeader title={tableData.title} description={tableData.description} />
-          <div className="table-toolbar">
+      <Panel>
+        <PanelHeader title={currentTable.title} description={currentTable.description} />
+        <div className="table-toolbar">
+          <Badge tone="source">{currentTable.source}</Badge>
+          <div className="toolbar-actions">
             <div className="table-search">
               <Icon name="search" />
-              <input type="text" value="Search source records" readOnly />
-            </div>
-            <div className="toolbar-actions">
-              <button className="secondary-button" type="button">
-                June 2026
-              </button>
-              <button className="secondary-button" type="button">
-                Filters
-              </button>
-              <button className="secondary-button" type="button">
-                Page 1 of 1
-              </button>
+              <input type="text" placeholder="Search table records..." readOnly />
             </div>
           </div>
-          <DataTable headers={tableData.headers} rows={tableData.rows} sticky />
-          <div className="table-footer-note">
-            <Badge tone={selectedReport === "daily" ? "derived" : "source"}>
-              {selectedReport === "daily" ? "DERIVED" : "SOURCE"}
-            </Badge>
-            <span>{tableData.source}</span>
-          </div>
-        </Panel>
-
-        <Panel>
-          <PanelHeader title={tableData.detailTitle} description="Detail view / drawer equivalent for the selected report context." />
-          <div className="annotation-list">
-            {tableData.detailItems.map(([label, value]) => (
-              <Annotation key={label} label={label} value={value} tone="neutral" />
-            ))}
-          </div>
-        </Panel>
-      </div>
+        </div>
+        <DataTable headers={currentTable.headers} rows={currentTable.rows} sticky />
+        <div className="table-footer-note">
+          <Icon name="alert" />
+          <span>Values display -- where operational totals require validated workbook aggregation.</span>
+        </div>
+      </Panel>
     </>
   );
 }
@@ -844,46 +782,30 @@ function CustomerPage() {
     <>
       <SectionHeader
         eyebrow="Customer Intelligence"
-        title="Customer / vehicle search"
-        description="Only imported relationships are shown; unsupported links remain explicitly unavailable."
+        title="Customer & Vehicle Record Index"
+        description="Built on imported job card data to provide customer-level visibility."
       />
 
       <Panel>
-        <div className="table-search customer-search">
-          <Icon name="search" />
-          <input type="text" value="Search by customer, phone, vehicle, or model" readOnly />
-        </div>
+        <PanelHeader
+          title="Customer Search Index"
+          description="Source fields mapped from workshop reporting."
+        />
+        <DataTable
+          headers={[
+            "Customer Name",
+            "Phone Number",
+            "Vehicle Number",
+            "Model",
+            "Category",
+            "Last Service",
+            "Job Card",
+            "Breakdown Status",
+          ]}
+          rows={customerRows}
+          sticky
+        />
       </Panel>
-
-      <div className="content-grid">
-        <Panel>
-          <PanelHeader title="Customer Register" description="Imported job card customer and vehicle fields." />
-          <DataTable
-            headers={["Customer", "Phone", "Vehicle", "Model", "Category", "Service", "Job Card", "Breakdowns"]}
-            rows={customerRows}
-          />
-        </Panel>
-
-        <Panel>
-          <PanelHeader title="Customer Profile" description="Tabs are rendered as structured sections for the static demo." />
-          <div className="customer-profile">
-            <div className="customer-avatar">LP</div>
-            <div>
-              <h3>Lachchiram PG College Salikpur Gzp</h3>
-              <p>Customer category: School</p>
-            </div>
-          </div>
-          <div className="annotation-list">
-            <Annotation label="Phone" value="9454277263" tone="source" />
-            <Annotation label="Vehicle" value="UP61AT2335" tone="source" />
-            <Annotation label="Model" value="T1" tone="source" />
-            <Annotation label="Service History" value="Job Card 91" tone="source" />
-            <Annotation label="Invoices" value="No imported record available" tone="neutral" />
-            <Annotation label="Breakdowns" value="No imported record available" tone="neutral" />
-            <Annotation label="Claims" value="No imported record available" tone="neutral" />
-          </div>
-        </Panel>
-      </div>
     </>
   );
 }
@@ -1094,29 +1016,6 @@ function Annotation({
   );
 }
 
-function ScoreCard({
-  label,
-  value,
-  note,
-  tone,
-}: {
-  label: string;
-  value: string;
-  note: string;
-  tone: BadgeTone;
-}) {
-  return (
-    <div className="score-card">
-      <div className="score-card-top">
-        <span>{label}</span>
-        <Badge tone={tone}>{tone.toUpperCase()}</Badge>
-      </div>
-      <strong>{value}</strong>
-      <small>{note}</small>
-    </div>
-  );
-}
-
 function ActionRow({
   title,
   text,
@@ -1145,24 +1044,6 @@ function ActionRow({
 function StoryStep({ title, copy }: { title: string; copy: string }) {
   return (
     <div className="story-step">
-      <strong>{title}</strong>
-      <p>{copy}</p>
-    </div>
-  );
-}
-
-function PipelineStep({
-  label,
-  title,
-  copy,
-}: {
-  label: string;
-  title: string;
-  copy: string;
-}) {
-  return (
-    <div className="pipeline-step">
-      <span>{label}</span>
       <strong>{title}</strong>
       <p>{copy}</p>
     </div>
