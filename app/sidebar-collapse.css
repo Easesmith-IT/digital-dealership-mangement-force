@@ -1,0 +1,195 @@
+/* Collapsible navigation rail: closed by default, expands on hover/focus. */
+
+:root {
+  --sidebar-collapsed-width: 76px;
+  --sidebar-expanded-width: 282px;
+  --sidebar-transition: 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar {
+  width: var(--sidebar-collapsed-width) !important;
+  padding: 18px 12px !important;
+  gap: 18px !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: nowrap;
+  z-index: 30;
+  transition:
+    width var(--sidebar-transition),
+    box-shadow var(--sidebar-transition),
+    padding var(--sidebar-transition);
+}
+
+.sidebar:hover,
+.sidebar:focus-within {
+  width: var(--sidebar-expanded-width) !important;
+  padding: 22px 18px !important;
+  box-shadow: 18px 0 40px rgba(8, 24, 42, 0.16);
+}
+
+.sidebar-brand {
+  min-height: 42px;
+  overflow: hidden;
+  transition: gap var(--sidebar-transition);
+}
+
+.sidebar-brand > div:not(.brand-mark),
+.workspace-card > div,
+.sidebar-profile > div:last-child,
+.nav-group-label,
+.nav-link > span:last-child {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+  transition:
+    opacity 150ms ease,
+    transform var(--sidebar-transition);
+}
+
+.sidebar:hover .sidebar-brand > div:not(.brand-mark),
+.sidebar:focus-within .sidebar-brand > div:not(.brand-mark),
+.sidebar:hover .workspace-card > div,
+.sidebar:focus-within .workspace-card > div,
+.sidebar:hover .sidebar-profile > div:last-child,
+.sidebar:focus-within .sidebar-profile > div:last-child,
+.sidebar:hover .nav-group-label,
+.sidebar:focus-within .nav-group-label,
+.sidebar:hover .nav-link > span:last-child,
+.sidebar:focus-within .nav-link > span:last-child {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.workspace-card {
+  min-height: 48px;
+  justify-content: center;
+  padding: 10px !important;
+  transition:
+    background-color 180ms ease,
+    padding var(--sidebar-transition);
+}
+
+.sidebar:hover .workspace-card,
+.sidebar:focus-within .workspace-card {
+  justify-content: space-between;
+  padding: 14px !important;
+}
+
+.sidebar-nav {
+  overflow-x: hidden;
+}
+
+.nav-group {
+  min-width: 0;
+}
+
+.nav-link {
+  justify-content: center;
+  padding: 11px 10px !important;
+  transition:
+    background-color 180ms ease,
+    justify-content var(--sidebar-transition),
+    padding var(--sidebar-transition);
+}
+
+.sidebar:hover .nav-link,
+.sidebar:focus-within .nav-link {
+  justify-content: flex-start;
+  padding: 11px 12px !important;
+}
+
+.nav-group-label {
+  display: block;
+}
+
+.sidebar-profile {
+  justify-content: center;
+  overflow: hidden;
+  transition: padding var(--sidebar-transition);
+}
+
+.sidebar:hover .sidebar-profile,
+.sidebar:focus-within .sidebar-profile {
+  justify-content: flex-start;
+}
+
+.shell-content {
+  margin-left: var(--sidebar-collapsed-width) !important;
+  transition: margin-left var(--sidebar-transition);
+}
+
+.sidebar-toggle-hint {
+  position: fixed;
+  left: calc(var(--sidebar-collapsed-width) - 8px);
+  top: 50%;
+  z-index: 31;
+  width: 16px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-left: 0;
+  border-radius: 0 9px 9px 0;
+  background: #102740;
+  color: rgba(255,255,255,0.75);
+  box-shadow: 4px 0 14px rgba(8,24,42,0.12);
+  pointer-events: none;
+  opacity: 0.9;
+  transition: left var(--sidebar-transition), opacity 160ms ease;
+}
+
+.sidebar:hover ~ .sidebar-toggle-hint,
+.sidebar:focus-within ~ .sidebar-toggle-hint {
+  opacity: 0;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: min(282px, 86vw) !important;
+    transform: translateX(calc(-100% + 58px));
+    transition: transform var(--sidebar-transition), box-shadow var(--sidebar-transition);
+  }
+
+  .sidebar:hover,
+  .sidebar:focus-within {
+    width: min(282px, 86vw) !important;
+    transform: translateX(0);
+  }
+
+  .sidebar-brand > div:not(.brand-mark),
+  .workspace-card > div,
+  .sidebar-profile > div:last-child,
+  .nav-group-label,
+  .nav-link > span:last-child {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .nav-link,
+  .sidebar:hover .nav-link,
+  .sidebar:focus-within .nav-link {
+    justify-content: flex-start;
+  }
+
+  .shell-content {
+    margin-left: 58px !important;
+  }
+
+  .top-header {
+    padding-left: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-brand,
+  .workspace-card,
+  .nav-link,
+  .sidebar-profile,
+  .shell-content,
+  .sidebar-toggle-hint {
+    transition: none !important;
+  }
+}
