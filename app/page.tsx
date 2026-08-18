@@ -50,6 +50,7 @@ import { EmployeeIncentiveTab } from "./components/employee/EmployeeIncentiveTab
 import { EmployeePerformanceHistoryTab } from "./components/employee/EmployeePerformanceHistoryTab";
 import { ManagerActionCard } from "./components/employee/ManagerActionCard";
 import { JobDetailModal } from "./components/employee/JobDetailModal";
+import { ReportingDashboard } from "./components/reporting/ReportingDashboard";
 
 type BadgeTone = "source" | "derived" | "proposed" | "neutral" | "success";
 
@@ -87,6 +88,7 @@ type IconName =
   | "arrow";
 
 const navigation: NavItem[] = [
+  { view: "reporting", label: "Reporting & Management", section: "OVERVIEW", icon: "dashboard" },
   { view: "dashboard", label: "Dashboard", section: "OVERVIEW", icon: "dashboard" },
   { view: "dataHub", label: "Data Hub", section: "DATA", icon: "database" },
   { view: "reports", label: "Data & Reports", section: "DATA", icon: "reports" },
@@ -260,7 +262,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [activeView, setActiveView] = useState<ViewId>("employee");
+  const [activeView, setActiveView] = useState<ViewId>("reporting");
   const [selectedWeek, setSelectedWeek] = useState<number>(3);
   const [employeeTab, setEmployeeTab] = useState<EmployeeTab>("evaluation");
   const [selectedReport, setSelectedReport] = useState<ReportId>("workshop");
@@ -383,6 +385,7 @@ export default function Home() {
         </header>
 
         <section className="content-frame">
+          {activeView === "reporting" && <ReportingDashboard />}
           {activeView === "dashboard" && <Dashboard monthlyAverage={monthlyAverage} onNavigate={setActiveView} />}
           {activeView === "dataHub" && <DataHub />}
           {activeView === "employee" && (

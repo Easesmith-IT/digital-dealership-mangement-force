@@ -1,4 +1,5 @@
 export type ViewId =
+  | "reporting"
   | "dashboard"
   | "dataHub"
   | "employee"
