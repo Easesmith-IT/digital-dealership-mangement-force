@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./sidebar-click-fix.css";
 
 export const metadata: Metadata = {
   title: "Force Goenka Dashboard",

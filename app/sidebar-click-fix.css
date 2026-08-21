@@ -1,0 +1,32 @@
+/* Sidebar interaction fix.
+   The mobile/tablet backdrop must sit behind the sidebar, otherwise it intercepts
+   every click on the navigation when the drawer is open. */
+
+.sidebar {
+  position: relative;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.sidebar-nav,
+.nav-group,
+.nav-link {
+  position: relative;
+  z-index: 41;
+  pointer-events: auto !important;
+}
+
+.sidebar-backdrop {
+  z-index: 30 !important;
+}
+
+@media (max-width: 1199px) {
+  .sidebar {
+    position: fixed;
+    z-index: 40 !important;
+  }
+
+  .sidebar-backdrop {
+    z-index: 30 !important;
+  }
+}
